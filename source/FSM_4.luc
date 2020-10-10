@@ -1,0 +1,65 @@
+module fsm_4 (
+    input clk,  // clock
+    input rst,  // reset
+    input in, //0 or 1
+    output out [3]
+  ) {
+
+  fsm state (.clk(clk), .rst(rst)) = {OOO, OOI, OIO, OII, IOO, IOI, IIO, III};
+  
+  
+  always {
+      
+    out = 000;
+    
+    case (state.q){
+      state.OOO:
+        out = 000;
+        if(in == 1)
+          state.d = state.OOI;
+      
+      state.OOI:
+        out = 001;
+        if(in == 1)
+          state.d = state.OIO;
+          
+      state.OIO:
+        out = 010;
+        if(in == 1)
+          state.d = state.OII;
+          
+      state.OII:
+        out = 011;
+        if(in == 1)
+          state.d = state.IOO;   
+          
+      state.IOO:
+        out = 100;
+        if(in == 1)
+          state.d = state.IOI;
+          
+      state.IOI:
+        out = 101;
+        if(in == 1)
+          state.d = state.IIO;
+          
+      state.IIO:
+        out = 110;
+        if(in == 1)
+          state.d = state.III;  
+      
+      state.III:
+        out = 111;
+        if(in == 1)
+          state.d = state.OOO;  
+      }
+  
+    //dffa.d = (~dffb.q & in) | (dffb.q & ~in  );
+    //dffb.d = (~dffa.q & dffb.q & in) | (dffa.q & ~in) | (dffa.q & ~dffb.q);
+    
+    //out[0] = dffa.q;
+    //out[1] = dffb.q;
+
+
+  }
+}

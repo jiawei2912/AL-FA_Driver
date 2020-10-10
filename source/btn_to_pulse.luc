@@ -1,0 +1,17 @@
+module btn_to_pulse (
+    input clk,  // clock
+    input rst,  // reset
+    input in,
+    output out
+  ) {
+  
+  dff dff1[1](.clk(clk));
+  dff dff2[1](.clk(clk));
+  
+  always {
+  
+    out = in & ~dff2.q;
+    dff2.d = in;
+    
+  }
+}

@@ -1,0 +1,13 @@
+module blinker (
+    input clk,  // clock
+    input rst,  // reset
+    output out
+  ) {
+  
+  dff counter[29](.clk(clk), .rst(rst));
+
+  always {
+    out = counter.q[28];
+    counter.d = counter.q + 1;
+  }
+}

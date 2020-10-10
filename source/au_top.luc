@@ -1,0 +1,66 @@
+module au_top (
+    input clk,              // 100MHz clock
+    input rst_n,            // reset button (active low)
+    output led [8],         // 8 user controllable LEDs
+    input usb_rx,           // USB->Serial input
+    output usb_tx,          // USB->Serial output
+    output io_led [3][8],   // LEDs on IO Shield
+    output io_seg [8],      // 7-segment LEDs on IO Shield
+    output io_sel [4],      // Digit select on IO Shield
+    input io_button [5],    // 5 buttons on IO Shield
+    input io_dip [3][8]     // DIP switches on IO Shield
+  ) {
+  
+  sig rst;                  // reset signal
+  
+  .clk(clk) {
+    // The reset conditioner is used to synchronize the reset signal to the FPGA
+    // clock. This ensures the entire FPGA comes out of reset at the same time.
+    reset_conditioner reset_cond;  
+    button_conditioner cond_btn (#CLK_FREQ(100000000), #MIN_DELAY(100), .in(io_button[4])); // Conditions button press
+    edge_detector pulsebtn1 (#RISE(1), #FALL(0), .in(cond_btn.out)); //Sends out a one clock pulse on the rising edge of the button press
+    //mycounter auto_driver (.rst(~io_dip[0][0]), #UP(1), #SIZE(32)) ;
+    blinker auto_driver (.rst(~io_dip[0][0]));
+    edge_detector pulsebtn2 (#RISE(1), #FALL(0), .in(auto_driver.out));
+    
+    .rst(rst) {
+      fsm_4 fa_driver;  
+    }
+  }
+  
+  //decoder to_external (#WIDTH(2)); // creates a decoder with width 2
+  
+  //sig result [24];  //basically a variable - somewhere to store info temporarily
+  
+  
+  always {
+    reset_cond.in = ~rst_n; // input raw inverted reset signal
+    rst = reset_cond.out;   // conditioned reset
+    
+    usb_tx = usb_rx;        // loop serial port
+    
+    led = 8h00;             // turn LEDs off
+    
+    io_led = 3x{{8h00}};    // turn LEDs off
+    io_seg = 8hff;          // turn segments off
+    io_sel = 4hf;           // select no digits
+    
+    //to_external.in = fa_driver.out;    
+    io_led[2][3:0] = fa_driver.out;
+    
+    fa_driver.in = (pulsebtn1.out & ~io_dip[0][0]) | (pulsebtn2.out & io_dip[0][0]);
+    
+    //io_led[0][0] = io_dip[0][0] & io_dip[0][1];    //AND GATE
+    //io_led[0][2] = io_dip[0][2] | io_dip[0][3];    //OR GATE
+    //io_led[0][4] = io_dip[0][4] ^ io_dip[0][5];    //XOR GATE
+    //io_led[0][6] = io_dip[0][6] ~^ io_dip[0][7];   //XNOR GATE
+    
+    //result = io_dip[1] + io_dip[0]; // adds the switch values of the switches in the middle and on the right
+
+    //io_led = $build(result,3); //build splits result into 3x8 array
+    
+    
+    
+    
+  }
+}
